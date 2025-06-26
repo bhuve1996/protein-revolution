@@ -1,10 +1,11 @@
 import React from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { prisma } from '@/lib/db'
 import { ProductCard } from '@/components/product/product-card'
+import { CategoryFilters } from '@/components/product/category-filters'
+import { CategoryPagination } from '@/components/product/category-pagination'
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>
@@ -118,26 +119,6 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   const { category, products, totalProducts, brands, currentPage, totalPages } = data
 
-  const buildUrl = (newParams: Record<string, string | undefined>) => {
-    const params = new URLSearchParams()
-    
-    // Keep existing params
-    Object.entries(resolvedSearchParams).forEach(([key, value]) => {
-      if (value && !newParams.hasOwnProperty(key)) {
-        params.set(key, value)
-      }
-    })
-    
-    // Add new params
-    Object.entries(newParams).forEach(([key, value]) => {
-      if (value) {
-        params.set(key, value)
-      }
-    })
-    
-    return `/categories/${category.slug}?${params.toString()}`
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -153,100 +134,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
           <div className="lg:w-1/4">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <Filter className="h-5 w-5 mr-2" />
-                Filters
-              </h3>
-
-              {/* Sort Options */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Sort By</h4>
-                <select
-                  value={resolvedSearchParams.sort || ''}
-                  onChange={(e) => window.location.href = buildUrl({ sort: e.target.value, page: '1' })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                >
-                  <option value="">Default</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="name">Name A-Z</option>
-                  <option value="newest">Newest First</option>
-                  <option value="rating">Highest Rated</option>
-                </select>
-              </div>
-
-              {/* Brand Filter */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Brand</h4>
-                <div className="space-y-2">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="brand"
-                      value=""
-                      checked={!resolvedSearchParams.brand}
-                      onChange={(e) => window.location.href = buildUrl({ brand: undefined, page: '1' })}
-                      className="text-red-600"
-                    />
-                    <span className="ml-2 text-sm">All Brands</span>
-                  </label>
-                                     {brands.map((brand: string) => (
-                    <label key={brand} className="flex items-center">
-                      <input
-                        type="radio"
-                        name="brand"
-                        value={brand}
-                        checked={resolvedSearchParams.brand === brand}
-                        onChange={(e) => window.location.href = buildUrl({ brand: e.target.value, page: '1' })}
-                        className="text-red-600"
-                      />
-                      <span className="ml-2 text-sm">{brand}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price Range */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Price Range</h4>
-                <div className="space-y-3">
-                  <div>
-                    <input
-                      type="number"
-                      placeholder="Min Price"
-                      value={resolvedSearchParams.minPrice || ''}
-                      onChange={(e) => {
-                        const timeout = setTimeout(() => {
-                          window.location.href = buildUrl({ minPrice: e.target.value, page: '1' })
-                        }, 1000)
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="number"
-                      placeholder="Max Price"
-                      value={resolvedSearchParams.maxPrice || ''}
-                      onChange={(e) => {
-                        const timeout = setTimeout(() => {
-                          window.location.href = buildUrl({ maxPrice: e.target.value, page: '1' })
-                        }, 1000)
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Clear Filters */}
-              <Link href={`/categories/${category.slug}`}>
-                <Button variant="outline" className="w-full">
-                  Clear All Filters
-                </Button>
-              </Link>
-            </div>
+            <CategoryFilters 
+              searchParams={resolvedSearchParams}
+              brands={brands}
+              categorySlug={category.slug}
+            />
           </div>
 
           {/* Products Grid */}
@@ -268,40 +160,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                 </div>
 
                 {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex justify-center items-center space-x-2">
-                    <button
-                      onClick={() => {
-                        window.location.href = buildUrl({ page: String(Math.max(1, currentPage - 1)) })
-                      }}
-                      disabled={currentPage === 1}
-                      className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Previous
-                    </button>
-                    
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <Link key={page} href={buildUrl({ page: String(page) })}>
-                        <Button
-                          variant={page === currentPage ? "default" : "outline"}
-                          size="sm"
-                        >
-                          {page}
-                        </Button>
-                      </Link>
-                    ))}
-                    
-                    <button
-                      onClick={() => {
-                        window.location.href = buildUrl({ page: String(Math.min(totalPages, currentPage + 1)) })
-                      }}
-                      disabled={currentPage === totalPages}
-                      className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Next
-                    </button>
-                  </div>
-                )}
+                <CategoryPagination 
+                  searchParams={resolvedSearchParams}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  categorySlug={category.slug}
+                />
               </>
             )}
           </div>
