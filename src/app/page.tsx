@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, ShoppingCart, Star, Truck, Shield, Headphones, Award } from 'lucide-react'
+import { ArrowRight, Truck, Shield, Headphones, Award } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ProductCard } from '@/components/product/product-card'
 

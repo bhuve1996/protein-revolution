@@ -168,7 +168,7 @@ export default async function AdminDashboard() {
           <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold mb-4">Monthly Revenue</h3>
             <div className="space-y-4">
-              {stats.monthlyRevenue.map((item, index) => (
+              {stats.monthlyRevenue.map((item: any, index: number) => (
                 <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                   <span className="font-medium">{item.month}</span>
                   <div className="text-right">
@@ -184,7 +184,7 @@ export default async function AdminDashboard() {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold mb-4">Products by Category</h3>
             <div className="space-y-3">
-              {stats.categoryStats.map((category, index) => (
+              {stats.categoryStats.map((category: any, index: number) => (
                 <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                   <span className="font-medium">{category.name}</span>
                   <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm font-bold">

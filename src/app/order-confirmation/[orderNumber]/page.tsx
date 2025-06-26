@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button'
 import { prisma } from '@/lib/db'
 
 interface OrderConfirmationProps {
-  params: {
+  params: Promise<{
     orderNumber: string
-  }
+  }>
 }
 
 async function getOrder(orderNumber: string) {
@@ -41,7 +41,8 @@ async function getOrder(orderNumber: string) {
 }
 
 export default async function OrderConfirmationPage({ params }: OrderConfirmationProps) {
-  const order = await getOrder(params.orderNumber)
+  const { orderNumber } = await params
+  const order = await getOrder(orderNumber)
 
   if (!order) {
     notFound()
@@ -222,6 +223,20 @@ export default async function OrderConfirmationPage({ params }: OrderConfirmatio
               Call us at <strong>+91-9876543210</strong> or email <strong>support@theproteinrevolution.com</strong>
             </p>
           </div>
+
+          <p className="text-sm text-gray-600">
+            We&apos;ve sent a confirmation email to your registered email address with all the order details.
+          </p>
+
+          <p className="text-sm text-gray-600">
+            Track your order status and view detailed information in your account dashboard. We&apos;ll keep you updated via email and SMS as your order progresses.
+          </p>
+          <p className="text-sm text-gray-600 mt-2">
+            Questions? Our customer support team is here to help! We&apos;re available 24/7 to assist you.
+          </p>
+          <p className="text-sm text-gray-600 mt-2">
+            Thank you for choosing The Protein Revolution - we&apos;re committed to helping you achieve your fitness goals!
+          </p>
         </div>
       </div>
     </div>

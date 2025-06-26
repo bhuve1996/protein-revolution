@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { Filter, SortAsc } from 'lucide-react'
+import { Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { prisma } from '@/lib/db'
 import { ProductCard } from '@/components/product/product-card'
@@ -16,7 +16,14 @@ interface AllProductsPageProps {
   }>
 }
 
-async function getAllProducts(searchParams: any) {
+async function getAllProducts(searchParams: { 
+  sort?: string
+  category?: string
+  brand?: string
+  minPrice?: string
+  maxPrice?: string
+  page?: string
+}) {
   try {
     // Build filter conditions
     const where: any = {
@@ -195,7 +202,7 @@ export default async function AllProductsPage({ searchParams }: AllProductsPageP
                     />
                     <span className="ml-2 text-sm">All Categories</span>
                   </label>
-                  {categories.map((category: any) => (
+                  {categories.map((category: { id: string; name: string; slug: string }) => (
                     <label key={category.id} className="flex items-center">
                       <input
                         type="radio"

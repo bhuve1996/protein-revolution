@@ -1,5 +1,4 @@
 import React from 'react'
-import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Search, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -166,7 +165,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     const params = new URLSearchParams()
     
     // Keep existing params
-    Object.entries(searchParams).forEach(([key, value]) => {
+    Object.entries(resolvedSearchParams).forEach(([key, value]) => {
       if (value && !newParams.hasOwnProperty(key)) {
         params.set(key, value)
       }
@@ -214,7 +213,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 <div className="mb-6">
                   <h4 className="font-medium text-gray-900 mb-3">Sort By</h4>
                   <select
-                    value={searchParams.sort || ''}
+                    value={resolvedSearchParams.sort || ''}
                     onChange={(e) => window.location.href = buildUrl({ sort: e.target.value, page: '1' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
@@ -236,7 +235,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         type="radio"
                         name="category"
                         value=""
-                        checked={!searchParams.category}
+                        checked={!resolvedSearchParams.category}
                         onChange={(e) => window.location.href = buildUrl({ category: undefined, page: '1' })}
                         className="text-red-600"
                       />
@@ -248,7 +247,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                           type="radio"
                           name="category"
                           value={category.slug}
-                          checked={searchParams.category === category.slug}
+                          checked={resolvedSearchParams.category === category.slug}
                           onChange={(e) => window.location.href = buildUrl({ category: e.target.value, page: '1' })}
                           className="text-red-600"
                         />
@@ -267,7 +266,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         type="radio"
                         name="brand"
                         value=""
-                        checked={!searchParams.brand}
+                        checked={!resolvedSearchParams.brand}
                         onChange={(e) => window.location.href = buildUrl({ brand: undefined, page: '1' })}
                         className="text-red-600"
                       />
@@ -279,7 +278,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                           type="radio"
                           name="brand"
                           value={brand}
-                          checked={searchParams.brand === brand}
+                          checked={resolvedSearchParams.brand === brand}
                           onChange={(e) => window.location.href = buildUrl({ brand: e.target.value, page: '1' })}
                           className="text-red-600"
                         />
@@ -297,7 +296,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                       <input
                         type="number"
                         placeholder="Min Price"
-                        value={searchParams.minPrice || ''}
+                        value={resolvedSearchParams.minPrice || ''}
                         onChange={(e) => {
                           const timeout = setTimeout(() => {
                             window.location.href = buildUrl({ minPrice: e.target.value, page: '1' })
@@ -310,7 +309,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                       <input
                         type="number"
                         placeholder="Max Price"
-                        value={searchParams.maxPrice || ''}
+                        value={resolvedSearchParams.maxPrice || ''}
                         onChange={(e) => {
                           const timeout = setTimeout(() => {
                             window.location.href = buildUrl({ maxPrice: e.target.value, page: '1' })
@@ -337,7 +336,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 <div className="bg-white rounded-lg shadow-sm p-12 text-center">
                   <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-                  <p className="text-gray-600 mb-4">Try adjusting your search terms or filters.</p>
+                  <p className="text-gray-600 mb-4">
+                    We couldn&apos;t find any products matching &quot;{query}&quot;. Try different keywords or browse our categories.
+                  </p>
                   <Link href="/">
                     <Button>Browse All Products</Button>
                   </Link>
@@ -388,7 +389,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 }
 
 export async function generateMetadata({ searchParams }: SearchPageProps) {
-  const query = searchParams.q || ''
+  const resolvedParams = await searchParams
+  const query = resolvedParams.q || ''
   
   return {
     title: query ? `Search: ${query} - The Protein Revolution` : 'Search - The Protein Revolution',

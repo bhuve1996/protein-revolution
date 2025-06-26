@@ -20,8 +20,8 @@ export interface Product {
   nutritionFacts?: any
   ingredients?: string
   reviews?: Review[]
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }
 
 export interface Category {
@@ -31,8 +31,8 @@ export interface Category {
   description?: string
   image?: string
   products?: Product[]
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }
 
 export interface Review {
@@ -43,17 +43,17 @@ export interface Review {
   userId: string
   product: Product
   productId: string
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }
 
 export interface User {
   id: string
-  name?: string
+  name: string
   email: string
   emailVerified?: Date
   image?: string
-  role: 'CUSTOMER' | 'ADMIN'
+  role: 'USER' | 'ADMIN'
   phone?: string
   address?: string
   city?: string
@@ -64,52 +64,43 @@ export interface User {
   reviews?: Review[]
   cartItems?: CartItem[]
   callbacks?: CallbackRequest[]
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }
 
 export interface CartItem {
   id: string
   quantity: number
-  user: User
   userId: string
-  product: Product
   productId: string
-  createdAt: Date
-  updatedAt: Date
+  product: Product
+  createdAt: string
+  updatedAt: string
 }
 
 export interface Order {
   id: string
   orderNumber: string
-  user: User
-  userId: string
-  email: string
-  phone: string
-  shippingAddress: any
-  items: OrderItem[]
-  subtotal: number
-  shipping: number
-  tax: number
-  total: number
   status: 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
-  paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED'
-  paymentMethod?: string
-  trackingNumber?: string
-  notes?: string
-  createdAt: Date
-  updatedAt: Date
+  total: number
+  subtotal: number
+  tax: number
+  shipping: number
+  userId: string
+  user: User
+  items: OrderItem[]
+  shippingAddress: Record<string, unknown>
+  createdAt: string
+  updatedAt: string
 }
 
 export interface OrderItem {
   id: string
   quantity: number
   price: number
-  order: Order
   orderId: string
-  product: Product
   productId: string
-  createdAt: Date
+  product: Product
 }
 
 export interface CallbackRequest {

@@ -1,8 +1,7 @@
 import React from 'react'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
-import { Star, Filter, SortAsc } from 'lucide-react'
+import { Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { prisma } from '@/lib/db'
 import { ProductCard } from '@/components/product/product-card'
@@ -123,7 +122,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     const params = new URLSearchParams()
     
     // Keep existing params
-    Object.entries(searchParams).forEach(([key, value]) => {
+    Object.entries(resolvedSearchParams).forEach(([key, value]) => {
       if (value && !newParams.hasOwnProperty(key)) {
         params.set(key, value)
       }
@@ -164,7 +163,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               <div className="mb-6">
                 <h4 className="font-medium text-gray-900 mb-3">Sort By</h4>
                 <select
-                  value={searchParams.sort || ''}
+                  value={resolvedSearchParams.sort || ''}
                   onChange={(e) => window.location.href = buildUrl({ sort: e.target.value, page: '1' })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
@@ -186,7 +185,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                       type="radio"
                       name="brand"
                       value=""
-                      checked={!searchParams.brand}
+                      checked={!resolvedSearchParams.brand}
                       onChange={(e) => window.location.href = buildUrl({ brand: undefined, page: '1' })}
                       className="text-red-600"
                     />
@@ -198,7 +197,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                         type="radio"
                         name="brand"
                         value={brand}
-                        checked={searchParams.brand === brand}
+                        checked={resolvedSearchParams.brand === brand}
                         onChange={(e) => window.location.href = buildUrl({ brand: e.target.value, page: '1' })}
                         className="text-red-600"
                       />
@@ -216,7 +215,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                     <input
                       type="number"
                       placeholder="Min Price"
-                      value={searchParams.minPrice || ''}
+                      value={resolvedSearchParams.minPrice || ''}
                       onChange={(e) => {
                         const timeout = setTimeout(() => {
                           window.location.href = buildUrl({ minPrice: e.target.value, page: '1' })
@@ -229,7 +228,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                     <input
                       type="number"
                       placeholder="Max Price"
-                      value={searchParams.maxPrice || ''}
+                      value={resolvedSearchParams.maxPrice || ''}
                       onChange={(e) => {
                         const timeout = setTimeout(() => {
                           window.location.href = buildUrl({ maxPrice: e.target.value, page: '1' })
@@ -271,11 +270,15 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="flex justify-center items-center space-x-2">
-                    {currentPage > 1 && (
-                      <Link href={buildUrl({ page: String(currentPage - 1) })}>
-                        <Button variant="outline">Previous</Button>
-                      </Link>
-                    )}
+                    <button
+                      onClick={() => {
+                        window.location.href = buildUrl({ page: String(Math.max(1, currentPage - 1)) })
+                      }}
+                      disabled={currentPage === 1}
+                      className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </button>
                     
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                       <Link key={page} href={buildUrl({ page: String(page) })}>
@@ -288,11 +291,15 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                       </Link>
                     ))}
                     
-                    {currentPage < totalPages && (
-                      <Link href={buildUrl({ page: String(currentPage + 1) })}>
-                        <Button variant="outline">Next</Button>
-                      </Link>
-                    )}
+                    <button
+                      onClick={() => {
+                        window.location.href = buildUrl({ page: String(Math.min(totalPages, currentPage + 1)) })
+                      }}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
                   </div>
                 )}
               </>
@@ -304,9 +311,10 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   )
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const category = await prisma.category.findUnique({
-    where: { slug: params.slug }
+    where: { slug }
   })
 
   if (!category) {

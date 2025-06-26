@@ -15,27 +15,19 @@ interface CartItem {
   product: {
     id: string
     name: string
-    slug: string
     price: number
-    originalPrice?: number
-    images: string[]
-    brand: string
-    weight: string
-    stock: number
-    category: {
-      name: string
-    }
+    image: string
+    slug: string
   }
 }
 
 interface CartData {
   items: CartItem[]
   total: number
-  count: number
 }
 
 export default function CartPage() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const router = useRouter()
   const [cart, setCart] = useState<CartData | null>(null)
   const [loading, setLoading] = useState(true)

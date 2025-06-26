@@ -1,54 +1,75 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
+interface ProductsQuery {
+  search?: string
+  category?: string
+  brand?: string
+  minPrice?: string
+  maxPrice?: string
+  sort?: string
+  page?: string
+  limit?: string
+}
+
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '12')
-    const category = searchParams.get('category')
-    const brand = searchParams.get('brand')
-    const minPrice = searchParams.get('minPrice')
-    const maxPrice = searchParams.get('maxPrice')
+    const { searchParams } = new URL(request.url)
+    const query: ProductsQuery = {
+      search: searchParams.get('search') || undefined,
+      category: searchParams.get('category') || undefined,
+      brand: searchParams.get('brand') || undefined,
+      minPrice: searchParams.get('minPrice') || undefined,
+      maxPrice: searchParams.get('maxPrice') || undefined,
+      sort: searchParams.get('sort') || 'name',
+      page: searchParams.get('page') || '1',
+      limit: searchParams.get('limit') || '12'
+    }
+
+    const page = parseInt(query.page)
+    const limit = parseInt(query.limit)
+    const category = query.category
+    const brand = query.brand
+    const minPrice = query.minPrice
+    const maxPrice = query.maxPrice
     const type = searchParams.get('type')
-    const search = searchParams.get('search')
-    const sort = searchParams.get('sort')
+    const search = query.search
 
     const skip = (page - 1) * limit
 
     // Build where clause
-    const where: any = {
+    const whereClause: Record<string, unknown> = {
       isActive: true
     }
 
     if (category) {
-      where.category = {
+      whereClause.category = {
         slug: category
       }
     }
 
     if (brand) {
-      where.brand = {
+      whereClause.brand = {
         contains: brand,
         mode: 'insensitive'
       }
     }
 
     if (type) {
-      where.type = {
+      whereClause.type = {
         contains: type,
         mode: 'insensitive'
       }
     }
 
     if (minPrice || maxPrice) {
-      where.price = {}
-      if (minPrice) where.price.gte = parseFloat(minPrice)
-      if (maxPrice) where.price.lte = parseFloat(maxPrice)
+      whereClause.price = {}
+      if (minPrice) whereClause.price.gte = parseFloat(minPrice)
+      if (maxPrice) whereClause.price.lte = parseFloat(maxPrice)
     }
 
     if (search) {
-      where.OR = [
+      whereClause.OR = [
         {
           name: {
             contains: search,
@@ -71,31 +92,27 @@ export async function GET(request: NextRequest) {
     }
 
     // Build orderBy clause
-    let orderBy: any = { createdAt: 'desc' }
-    
-    if (sort) {
-      switch (sort) {
-        case 'price-low':
-          orderBy = { price: 'asc' }
-          break
-        case 'price-high':
-          orderBy = { price: 'desc' }
-          break
-        case 'rating':
-          orderBy = { rating: 'desc' }
-          break
-        case 'popular':
-          orderBy = { reviewCount: 'desc' }
-          break
-        case 'newest':
-          orderBy = { createdAt: 'desc' }
-          break
-      }
+    const orderBy: Record<string, string> = {}
+    switch (query.sort) {
+      case 'price-asc':
+        orderBy.price = 'asc'
+        break
+      case 'price-desc':
+        orderBy.price = 'desc'
+        break
+      case 'name':
+        orderBy.name = 'asc'
+        break
+      case 'newest':
+        orderBy.createdAt = 'desc'
+        break
+      default:
+        orderBy.name = 'asc'
     }
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
-        where,
+        where: whereClause,
         include: {
           category: true,
           reviews: {
@@ -112,7 +129,7 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit
       }),
-      prisma.product.count({ where })
+      prisma.product.count({ where: whereClause })
     ])
 
     const totalPages = Math.ceil(total / limit)

@@ -8,9 +8,9 @@ import { ProductCard } from '@/components/product/product-card'
 import { prisma } from '@/lib/db'
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 async function getProduct(slug: string) {
@@ -54,7 +54,8 @@ async function getProduct(slug: string) {
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const data = await getProduct(params.slug)
+  const { slug } = await params
+  const data = await getProduct(slug)
   
   if (!data) {
     notFound()

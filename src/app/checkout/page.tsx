@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { CreditCard, Truck, MapPin, Phone, Mail, ArrowLeft, Lock } from 'lucide-react'
+import { CreditCard, Truck, MapPin, ArrowLeft, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -47,6 +47,25 @@ export default function CheckoutPage() {
     landmark: ''
   })
 
+  const fetchCart = useCallback(async () => {
+    if (!session) return;
+    
+    try {
+      const response = await fetch('/api/cart');
+      if (response.ok) {
+        const data = await response.json();
+        setCart(data);
+        if (data.items.length === 0) {
+          router.push('/cart');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching cart:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [session, router]);
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin')
@@ -54,7 +73,7 @@ export default function CheckoutPage() {
     }
 
     if (status === 'authenticated') {
-      fetchCart()
+      fetchCart();
       // Pre-fill form with user data
       setShippingForm(prev => ({
         ...prev,
@@ -62,24 +81,7 @@ export default function CheckoutPage() {
         email: session.user.email || ''
       }))
     }
-  }, [status, router, session])
-
-  const fetchCart = async () => {
-    try {
-      const response = await fetch('/api/cart')
-      if (response.ok) {
-        const data = await response.json()
-        setCart(data)
-        if (data.items.length === 0) {
-          router.push('/cart')
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching cart:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [status, router, session, fetchCart])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target

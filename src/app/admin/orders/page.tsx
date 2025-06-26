@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Search, Filter, Eye, Package, Truck, CheckCircle } from 'lucide-react'
+import { Search, Filter, Eye, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -35,6 +35,25 @@ export default function AdminOrdersPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
+  const fetchOrders = useCallback(async () => {
+    try {
+      setLoading(true)
+      const queryParams = new URLSearchParams()
+      if (searchTerm) queryParams.append('search', searchTerm)
+      if (statusFilter) queryParams.append('status', statusFilter)
+      
+      const response = await fetch(`/api/admin/orders?${queryParams}`)
+      if (response.ok) {
+        const data = await response.json()
+        setOrders(data.orders)
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [searchTerm, statusFilter])
+
   useEffect(() => {
     if (status === 'unauthenticated' || (session && session.user.role !== 'ADMIN')) {
       router.push('/auth/signin')
@@ -44,26 +63,7 @@ export default function AdminOrdersPage() {
     if (status === 'authenticated') {
       fetchOrders()
     }
-  }, [status, session, router])
-
-  const fetchOrders = async () => {
-    try {
-      const params = new URLSearchParams()
-      if (searchTerm) params.append('search', searchTerm)
-      if (statusFilter) params.append('status', statusFilter)
-      params.append('limit', '50')
-
-      const response = await fetch(`/api/admin/orders?${params}`)
-      if (response.ok) {
-        const data = await response.json()
-        setOrders(data.orders || [])
-      }
-    } catch (error) {
-      console.error('Error fetching orders:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [status, session, router, fetchOrders])
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
@@ -100,26 +100,13 @@ export default function AdminOrdersPage() {
     }
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'DELIVERED':
-        return <CheckCircle className="h-4 w-4" />
-      case 'SHIPPED':
-        return <Truck className="h-4 w-4" />
-      case 'PROCESSING':
-        return <Package className="h-4 w-4" />
-      default:
-        return <Package className="h-4 w-4" />
-    }
-  }
-
   useEffect(() => {
-    const delayedSearch = setTimeout(() => {
+    const delayedFetch = setTimeout(() => {
       fetchOrders()
-    }, 500)
+    }, 300)
 
-    return () => clearTimeout(delayedSearch)
-  }, [searchTerm, statusFilter])
+    return () => clearTimeout(delayedFetch)
+  }, [fetchOrders])
 
   if (status === 'loading' || loading) {
     return (
@@ -210,7 +197,15 @@ export default function AdminOrdersPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {orders.map((order) => (
+                {orders.map((order: {
+                  id: string
+                  orderNumber: string
+                  status: string
+                  total: number
+                  createdAt: string
+                  user: { name: string; email: string }
+                  _count: { items: number }
+                }) => (
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
@@ -223,7 +218,7 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {order.items.reduce((sum: number, item: any) => sum + item.quantity, 0)} items
+                        {order._count.items} items
                       </div>
                       <div className="text-sm text-gray-500">
                         {order.items[0]?.product.name}
