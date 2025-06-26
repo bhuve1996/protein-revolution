@@ -2,7 +2,7 @@ import React from 'react'
 import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import Link from 'next/link'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+// Temporarily removed recharts to fix build issues
 import { Package, ShoppingCart, Users, DollarSign, TrendingUp, Eye, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { authOptions } from '@/lib/auth'
@@ -94,7 +94,7 @@ export default async function AdminDashboard() {
     return <div>Error loading dashboard</div>
   }
 
-  const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6']
+  // Removed COLORS as charts are temporarily disabled
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -167,39 +167,32 @@ export default async function AdminDashboard() {
           {/* Monthly Revenue Chart */}
           <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold mb-4">Monthly Revenue</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={stats.monthlyRevenue}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']} />
-                <Bar dataKey="revenue" fill="#ef4444" />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="space-y-4">
+              {stats.monthlyRevenue.map((item, index) => (
+                <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="font-medium">{item.month}</span>
+                  <div className="text-right">
+                    <div className="font-bold text-green-600">₹{item.revenue.toLocaleString()}</div>
+                    <div className="text-sm text-gray-500">{item.orders} orders</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Category Distribution */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold mb-4">Products by Category</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={stats.categoryStats}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {stats.categoryStats.map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="space-y-3">
+              {stats.categoryStats.map((category, index) => (
+                <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="font-medium">{category.name}</span>
+                  <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm font-bold">
+                    {category.value}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -7,7 +7,7 @@ import { prisma } from '@/lib/db'
 import { ProductCard } from '@/components/product/product-card'
 
 interface SearchPageProps {
-  searchParams: { 
+  searchParams: Promise<{ 
     q?: string
     sort?: string
     category?: string
@@ -15,7 +15,7 @@ interface SearchPageProps {
     minPrice?: string
     maxPrice?: string
     page?: string
-  }
+  }>
 }
 
 async function searchProducts(searchParams: any) {
@@ -158,7 +158,8 @@ async function searchProducts(searchParams: any) {
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const data = await searchProducts(searchParams)
+  const resolvedSearchParams = await searchParams
+  const data = await searchProducts(resolvedSearchParams)
   const { products, totalProducts, categories, brands, currentPage, totalPages, query } = data
 
   const buildUrl = (newParams: Record<string, string | undefined>) => {

@@ -145,13 +145,17 @@ export default function HomePage() {
                 Trusted by athletes and fitness enthusiasts worldwide.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="bg-white text-red-600 hover:bg-gray-100">
-                  Shop Now
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-red-600">
-                  View Products
-                </Button>
+                <Link href="/all-products">
+                  <Button size="lg" className="bg-white text-red-600 hover:bg-gray-100">
+                    Shop Now
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link href="/all-products">
+                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-red-600">
+                    View Products
+                  </Button>
+                </Link>
               </div>
             </div>
             <div className="relative">
@@ -262,17 +266,16 @@ export default function HomePage() {
               <ProductCard
                 key={product.id}
                 product={product}
-                onAddToCart={(productId) => {
-                  console.log('Add to cart:', productId)
-                }}
               />
             ))}
           </div>
           <div className="text-center mt-12">
-            <Button size="lg" variant="outline">
-              View All Products
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Link href="/all-products">
+              <Button size="lg" variant="outline">
+                View All Products
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -292,9 +295,9 @@ export default function HomePage() {
               placeholder="Enter your email"
               className="flex-1 px-4 py-3 rounded-lg text-gray-900"
             />
-            <Button className="bg-white text-red-600 hover:bg-gray-100">
+            <button className="bg-white text-red-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-medium">
               Subscribe
-            </Button>
+            </button>
           </div>
         </div>
       </section>

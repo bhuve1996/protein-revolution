@@ -8,14 +8,14 @@ import { prisma } from '@/lib/db'
 import { ProductCard } from '@/components/product/product-card'
 
 interface CategoryPageProps {
-  params: { slug: string }
-  searchParams: { 
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ 
     sort?: string
     brand?: string
     minPrice?: string
     maxPrice?: string
     page?: string
-  }
+  }>
 }
 
 async function getCategoryWithProducts(slug: string, searchParams: any) {
@@ -109,7 +109,9 @@ async function getCategoryWithProducts(slug: string, searchParams: any) {
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
-  const data = await getCategoryWithProducts(params.slug, searchParams)
+  const resolvedParams = await params
+  const resolvedSearchParams = await searchParams
+  const data = await getCategoryWithProducts(resolvedParams.slug, resolvedSearchParams)
 
   if (!data) {
     notFound()
