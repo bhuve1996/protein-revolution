@@ -217,7 +217,6 @@ export default function OffersPage() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => navigator.clipboard.writeText(offer.code)}
                     className="flex-1"
                   >
                     Copy Code

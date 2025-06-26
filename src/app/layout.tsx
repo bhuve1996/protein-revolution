@@ -4,6 +4,8 @@ import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { SessionProvider } from "@/providers/session-provider";
+import { ToastProvider } from "@/providers/toast-provider";
+import { LoadingProvider } from "@/providers/loading-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -47,13 +49,16 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <body className={inter.className}>
         <SessionProvider>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
+          <LoadingProvider>
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+            </div>
+            <ToastProvider />
+          </LoadingProvider>
         </SessionProvider>
       </body>
     </html>

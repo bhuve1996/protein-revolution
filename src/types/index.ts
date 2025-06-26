@@ -4,35 +4,35 @@ export interface Product {
   slug: string
   description: string
   price: number
-  originalPrice?: number
+  originalPrice?: number | null
   images: string[]
   brand: string
   category: Category
   categoryId: string
   type: string
   weight: string
-  flavor?: string
+  flavor?: string | null
   stock: number
   isActive: boolean
   isFeatured: boolean
   rating: number
   reviewCount: number
   nutritionFacts?: any
-  ingredients?: string
-  reviews?: Review[]
-  createdAt: string
-  updatedAt: string
+  ingredients?: string | null
+  reviews?: ProductReview[]
+  createdAt: string | Date
+  updatedAt: string | Date
 }
 
 export interface Category {
   id: string
   name: string
   slug: string
-  description?: string
-  image?: string
+  description?: string | null
+  image?: string | null
   products?: Product[]
-  createdAt: string
-  updatedAt: string
+  createdAt: string | Date
+  updatedAt: string | Date
 }
 
 export interface Review {
@@ -45,6 +45,20 @@ export interface Review {
   productId: string
   createdAt: string
   updatedAt: string
+}
+
+export interface ProductReview {
+  id: string
+  rating: number
+  comment: string
+  user: {
+    id: string
+    name: string | null
+  }
+  userId: string
+  productId: string
+  createdAt: string | Date
+  updatedAt: string | Date
 }
 
 export interface User {

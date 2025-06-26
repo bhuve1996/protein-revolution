@@ -1,5 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -44,13 +45,13 @@ export function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/products" className="hover:text-red-400">All Products</Link></li>
-              <li><Link href="/category/whey-protein" className="hover:text-red-400">Whey Protein</Link></li>
-              <li><Link href="/category/mass-gainer" className="hover:text-red-400">Mass Gainer</Link></li>
-              <li><Link href="/category/isolate" className="hover:text-red-400">Isolate</Link></li>
+              <li><Link href="/all-products" className="hover:text-red-400">All Products</Link></li>
+              <li><Link href="/categories/whey-protein" className="hover:text-red-400">Whey Protein</Link></li>
+              <li><Link href="/categories/mass-gainer" className="hover:text-red-400">Mass Gainer</Link></li>
+              <li><Link href="/categories/isolate" className="hover:text-red-400">Isolate</Link></li>
               <li><Link href="/brands" className="hover:text-red-400">Brands</Link></li>
               <li><Link href="/offers" className="hover:text-red-400">Special Offers</Link></li>
-              <li><Link href="/track-order" className="hover:text-red-400">Track Order</Link></li>
+              <li><Link href="/orders" className="hover:text-red-400">Track Order</Link></li>
             </ul>
           </div>
 
@@ -111,10 +112,34 @@ export function Footer() {
               © 2024 The Protein Revolution. All rights reserved.
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
-              <img src="/payments/visa.png" alt="Visa" className="h-6 opacity-70" />
-              <img src="/payments/mastercard.png" alt="Mastercard" className="h-6 opacity-70" />
-              <img src="/payments/rupay.png" alt="RuPay" className="h-6 opacity-70" />
-              <img src="/payments/upi.png" alt="UPI" className="h-6 opacity-70" />
+              <Image 
+                src="/payments/visa.png" 
+                alt="Visa" 
+                width={40} 
+                height={24} 
+                className="h-6 opacity-70"
+              />
+              <Image 
+                src="/payments/mastercard.png" 
+                alt="Mastercard" 
+                width={40} 
+                height={24} 
+                className="h-6 opacity-70"
+              />
+              <Image 
+                src="/payments/rupay.png" 
+                alt="RuPay" 
+                width={40} 
+                height={24} 
+                className="h-6 opacity-70"
+              />
+              <Image 
+                src="/payments/upi.png" 
+                alt="UPI" 
+                width={40} 
+                height={24} 
+                className="h-6 opacity-70"
+              />
             </div>
           </div>
         </div>

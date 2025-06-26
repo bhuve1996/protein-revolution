@@ -3,82 +3,32 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
-const brands = [
-  {
-    id: 1,
-    name: 'Optimum Nutrition',
-    description: 'World-renowned for premium whey protein and sports nutrition supplements.',
-    logo: '/brands/on-logo.jpg',
-    products: 45,
-    established: '1986',
-    speciality: 'Whey Protein, Pre-workout'
-  },
-  {
-    id: 2,
-    name: 'Dymatize',
-    description: 'Science-driven nutrition with superior quality and taste.',
-    logo: '/brands/dymatize-logo.jpg',
-    products: 32,
-    established: '1994',
-    speciality: 'ISO100, Protein Powder'
-  },
-  {
-    id: 3,
-    name: 'MuscleTech',
-    description: 'Cutting-edge research and superior ingredients for maximum results.',
-    logo: '/brands/muscletech-logo.jpg',
-    products: 28,
-    established: '1995',
-    speciality: 'Mass Gainer, Creatine'
-  },
-  {
-    id: 4,
-    name: 'BSN',
-    description: 'Innovative supplements designed to help you achieve your fitness goals.',
-    logo: '/brands/bsn-logo.jpg',
-    products: 24,
-    established: '2001',
-    speciality: 'SYNTHA-6, Pre-workout'
-  },
-  {
-    id: 5,
-    name: 'Rule 1',
-    description: 'Clean, premium ingredients with no artificial fillers or additives.',
-    logo: '/brands/rule1-logo.jpg',
-    products: 18,
-    established: '2009',
-    speciality: 'Clean Protein, Isolate'
-  },
-  {
-    id: 6,
-    name: 'MuscleBlaze',
-    description: 'India's leading sports nutrition brand with scientifically backed formulations.',
-    logo: '/brands/muscleblaze-logo.jpg',
-    products: 52,
-    established: '2012',
-    speciality: 'Indian Formulations, Mass Gainer'
-  },
-  {
-    id: 7,
-    name: 'Ultimate Nutrition',
-    description: 'High-quality supplements for serious athletes and fitness enthusiasts.',
-    logo: '/brands/ultimate-logo.jpg',
-    products: 35,
-    established: '1979',
-    speciality: 'Prostar Whey, Amino Acids'
-  },
-  {
-    id: 8,
-    name: 'Cellucor',
-    description: 'Premium sports nutrition supplements with clinically studied ingredients.',
-    logo: '/brands/cellucor-logo.jpg',
-    products: 26,
-    established: '2002',
-    speciality: 'C4 Pre-workout, Whey Sport'
-  }
-]
+interface Brand {
+  id: number
+  name: string
+  products: number
+}
 
-export default function BrandsPage() {
+async function getBrands(): Promise<Brand[]> {
+  try {
+    const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/brands`, {
+      next: { revalidate: 3600 } // Revalidate every hour
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch brands')
+    }
+    
+    return response.json()
+  } catch (error) {
+    console.error('Error fetching brands:', error)
+    return []
+  }
+}
+
+export default async function BrandsPage() {
+  const brands = await getBrands()
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -96,59 +46,61 @@ export default function BrandsPage() {
 
       {/* Brands Grid */}
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {brands.map((brand) => (
-            <Card key={brand.id} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="text-center">
-                <div className="w-24 h-24 mx-auto mb-4 bg-white rounded-full shadow-lg flex items-center justify-center">
-                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
-                    <span className="text-lg font-bold text-gray-600">
-                      {brand.name.charAt(0)}
-                    </span>
+        {brands.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg">No brands available at the moment.</p>
+            <Link href="/all-products">
+              <Button className="mt-4 bg-red-600 hover:bg-red-700">
+                Shop All Products
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {brands.map((brand) => (
+              <Card key={brand.id} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <CardHeader className="text-center">
+                  <div className="w-24 h-24 mx-auto mb-4 bg-white rounded-full shadow-lg flex items-center justify-center">
+                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                      <span className="text-lg font-bold text-gray-600">
+                        {brand.name.charAt(0)}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <CardTitle className="text-xl group-hover:text-red-600 transition-colors">
-                  {brand.name}
-                </CardTitle>
-                <CardDescription className="text-sm text-gray-600">
-                  Est. {brand.established}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  {brand.description}
-                </p>
+                  <CardTitle className="text-xl group-hover:text-red-600 transition-colors">
+                    {brand.name}
+                  </CardTitle>
+                  <CardDescription className="text-sm text-gray-600">
+                    Sports Nutrition Brand
+                  </CardDescription>
+                </CardHeader>
                 
-                <div className="flex justify-between items-center text-sm">
-                  <div>
-                    <span className="font-semibold text-red-600">
-                      {brand.products}
-                    </span>
-                    <span className="text-gray-600 ml-1">Products</span>
-                  </div>
-                  <div className="text-gray-600">
-                    <span className="font-medium">Speciality:</span>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-sm text-gray-700 font-medium">
-                    {brand.speciality}
+                <CardContent className="space-y-4">
+                  <p className="text-gray-700 text-sm leading-relaxed">
+                    Premium quality supplements and nutrition products from {brand.name}.
                   </p>
-                </div>
-              </CardContent>
-              
-              <CardFooter>
-                <Link href={`/search?brand=${encodeURIComponent(brand.name.toLowerCase())}`} className="w-full">
-                  <Button className="w-full group-hover:bg-red-700 transition-colors">
-                    View Products
-                  </Button>
-                </Link>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                  
+                  <div className="flex justify-center items-center text-sm">
+                    <div>
+                      <span className="font-semibold text-red-600">
+                        {brand.products}
+                      </span>
+                      <span className="text-gray-600 ml-1">Products Available</span>
+                    </div>
+                  </div>
+                </CardContent>
+                
+                <CardFooter>
+                  <Link href={`/search?brand=${encodeURIComponent(brand.name.toLowerCase())}`} className="w-full">
+                    <Button className="w-full group-hover:bg-red-700 transition-colors">
+                      View Products
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* CTA Section */}

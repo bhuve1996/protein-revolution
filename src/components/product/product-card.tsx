@@ -6,7 +6,12 @@ import Image from 'next/image'
 import { Star, ShoppingCart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatPrice, calculateDiscount } from '@/lib/utils'
+import { useCartStore } from '@/stores/cart-store'
+import { useLoading } from '@/providers/loading-provider'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { Product } from '@/types'
+import toast from 'react-hot-toast'
 
 interface ProductCardProps {
   product: Product
@@ -14,9 +19,44 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const { data: session } = useSession()
+  const router = useRouter()
+  const { addItem } = useCartStore()
+  const { setIsLoading, setLoadingText } = useLoading()
+  
   const discount = product.originalPrice 
     ? calculateDiscount(product.originalPrice, product.price)
     : 0
+
+  const handleAddToCart = async () => {
+    if (onAddToCart) {
+      onAddToCart(product.id)
+      return
+    }
+
+    if (!session) {
+      toast.error('Please sign in to add items to cart')
+      router.push('/auth/signin')
+      return
+    }
+
+    if (product.stock === 0) {
+      toast.error('Product is out of stock')
+      return
+    }
+
+    setIsLoading(true)
+    setLoadingText('Adding to cart...')
+
+    try {
+      await addItem(product, 1)
+      toast.success(`${product.name} added to cart!`)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to add to cart')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="group relative bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
@@ -101,7 +141,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         {/* Add to Cart Button */}
         <Button
           className="w-full"
-          onClick={() => onAddToCart?.(product.id)}
+          onClick={handleAddToCart}
           disabled={product.stock === 0}
         >
           <ShoppingCart className="h-4 w-4 mr-2" />

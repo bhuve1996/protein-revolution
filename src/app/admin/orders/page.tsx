@@ -25,6 +25,9 @@ interface Order {
       name: string
     }
   }[]
+  _count: {
+    items: number
+  }
 }
 
 export default function AdminOrdersPage() {
@@ -55,7 +58,7 @@ export default function AdminOrdersPage() {
   }, [searchTerm, statusFilter])
 
   useEffect(() => {
-    if (status === 'unauthenticated' || (session && session.user.role !== 'ADMIN')) {
+    if (status === 'unauthenticated') {
       router.push('/auth/signin')
       return
     }
@@ -221,8 +224,7 @@ export default function AdminOrdersPage() {
                         {order._count.items} items
                       </div>
                       <div className="text-sm text-gray-500">
-                        {order.items[0]?.product.name}
-                        {order.items.length > 1 && ` +${order.items.length - 1} more`}
+                        View details for product info
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

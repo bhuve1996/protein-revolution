@@ -1,16 +1,29 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
-import { Search, ShoppingCart, User, Menu, X, Phone } from 'lucide-react'
+import { Search, ShoppingCart, User, Menu, X, Phone, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useCartStore } from '@/stores/cart-store'
+import { useWishlistStore } from '@/stores/wishlist-store'
 
 export function Header() {
   const { data: session, status } = useSession()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  
+  const { totalItems: cartItemsCount, fetchCart } = useCartStore()
+  const { totalItems: wishlistItemsCount, fetchWishlist } = useWishlistStore()
+
+  // Fetch cart and wishlist when user is authenticated
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetchCart()
+      fetchWishlist()
+    }
+  }, [status, fetchCart, fetchWishlist])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,13 +84,29 @@ export function Header() {
 
           {/* Right Section */}
           <div className="flex items-center space-x-4">
+            {/* Wishlist */}
+            {session && (
+              <Link href="/wishlist">
+                <Button variant="ghost" size="icon" className="relative">
+                  <Heart className="h-5 w-5" />
+                  {wishlistItemsCount() > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {wishlistItemsCount()}
+                    </span>
+                  )}
+                </Button>
+              </Link>
+            )}
+
             {/* Cart */}
             <Link href="/cart">
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  0
-                </span>
+                {cartItemsCount() > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartItemsCount()}
+                  </span>
+                )}
               </Button>
             </Link>
 
@@ -99,7 +128,7 @@ export function Header() {
                   <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     Profile
                   </Link>
-                  {session.user.role === 'ADMIN' && (
+                  {(session.user as any)?.role === 'ADMIN' && (
                     <Link href="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       Admin Panel
                     </Link>

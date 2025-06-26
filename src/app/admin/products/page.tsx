@@ -36,7 +36,7 @@ export default function AdminProductsPage() {
   const [categories, setCategories] = useState<any[]>([])
 
   useEffect(() => {
-    if (status === 'unauthenticated' || (session && session.user.role !== 'ADMIN')) {
+    if (status === 'unauthenticated' || (session && session.user && (session.user as any).role !== 'ADMIN')) {
       router.push('/auth/signin')
       return
     }

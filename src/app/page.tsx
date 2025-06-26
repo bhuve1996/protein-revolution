@@ -4,131 +4,49 @@ import Image from 'next/image'
 import { ArrowRight, Truck, Shield, Headphones, Award } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ProductCard } from '@/components/product/product-card'
+import { prisma } from '@/lib/db'
 
-// Mock data for demonstration
-const featuredProducts = [
-  {
-    id: '1',
-    name: 'Optimum Nutrition Gold Standard Whey',
-    slug: 'optimum-nutrition-gold-standard-whey',
-    description: 'The gold standard in whey protein with 24g protein per serving',
-    price: 3299,
-    originalPrice: 3999,
-    images: ['https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400'],
-    brand: 'Optimum Nutrition',
-    category: { id: '1', name: 'Whey Protein', slug: 'whey-protein', createdAt: new Date(), updatedAt: new Date() },
-    categoryId: '1',
-    type: 'Whey Isolate',
-    weight: '2lbs',
-    flavor: 'Double Rich Chocolate',
-    stock: 15,
-    isActive: true,
-    isFeatured: true,
-    rating: 4.8,
-    reviewCount: 245,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    id: '2',
-    name: 'MuscleBlaze Biozyme Whey Protein',
-    slug: 'muscleblaze-biozyme-whey-protein',
-    description: 'Enhanced absorption whey protein with digestive enzymes',
-    price: 2899,
-    originalPrice: 3299,
-    images: ['https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400'],
-    brand: 'MuscleBlaze',
-    category: { id: '1', name: 'Whey Protein', slug: 'whey-protein', createdAt: new Date(), updatedAt: new Date() },
-    categoryId: '1',
-    type: 'Whey Concentrate',
-    weight: '1kg',
-    flavor: 'Rich Milk Chocolate',
-    stock: 8,
-    isActive: true,
-    isFeatured: true,
-    rating: 4.6,
-    reviewCount: 189,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    id: '3',
-    name: 'Dymatize Elite 100% Whey',
-    slug: 'dymatize-elite-100-whey',
-    description: 'Fast-absorbing whey protein for post-workout recovery',
-    price: 5999,
-    originalPrice: 6999,
-    images: ['https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400'],
-    brand: 'Dymatize',
-    category: { id: '1', name: 'Whey Protein', slug: 'whey-protein', createdAt: new Date(), updatedAt: new Date() },
-    categoryId: '1',
-    type: 'Whey Isolate',
-    weight: '5lbs',
-    flavor: 'Vanilla',
-    stock: 12,
-    isActive: true,
-    isFeatured: true,
-    rating: 4.7,
-    reviewCount: 156,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    id: '4',
-    name: 'Labrada Muscle Mass Gainer',
-    slug: 'labrada-muscle-mass-gainer',
-    description: 'High-calorie mass gainer for lean muscle building',
-    price: 3999,
-    originalPrice: 4499,
-    images: ['https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400'],
-    brand: 'Labrada',
-    category: { id: '2', name: 'Mass Gainer', slug: 'mass-gainer', createdAt: new Date(), updatedAt: new Date() },
-    categoryId: '2',
-    type: 'Mass Gainer',
-    weight: '6lbs',
-    flavor: 'Chocolate',
-    stock: 5,
-    isActive: true,
-    isFeatured: true,
-    rating: 4.5,
-    reviewCount: 98,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }
-]
+async function getHomePageData() {
+  // Get featured products
+  const featuredProducts = await prisma.product.findMany({
+    where: {
+      isActive: true,
+      isFeatured: true
+    },
+    include: {
+      category: true
+    },
+    take: 4,
+    orderBy: {
+      rating: 'desc'
+    }
+  })
 
-const categories = [
-  {
-    name: 'Whey Protein',
-    slug: 'whey-protein',
-    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300',
-    description: 'Fast-absorbing protein for muscle building',
-    productCount: 25
-  },
-  {
-    name: 'Mass Gainer',
-    slug: 'mass-gainer',
-    image: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=300',
-    description: 'High-calorie supplements for weight gain',
-    productCount: 12
-  },
-  {
-    name: 'Isolate',
-    slug: 'isolate',
-    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300',
-    description: 'Pure protein with minimal carbs and fat',
-    productCount: 18
-  },
-  {
-    name: 'Pre-Workout',
-    slug: 'pre-workout',
-    image: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=300',
-    description: 'Energy boosters for intense workouts',
-    productCount: 15
-  }
-]
+  // Get categories with product counts
+  const categories = await prisma.category.findMany({
+    include: {
+      _count: {
+        select: {
+          products: {
+            where: {
+              isActive: true
+            }
+          }
+        }
+      }
+    },
+    take: 4,
+    orderBy: {
+      name: 'asc'
+    }
+  })
 
-export default function HomePage() {
+  return { featuredProducts, categories }
+}
+
+export default async function HomePage() {
+  const { featuredProducts, categories } = await getHomePageData()
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -160,7 +78,7 @@ export default function HomePage() {
             </div>
             <div className="relative">
               <Image
-                src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600"
+                src="/placeholder-product.jpg"
                 alt="Protein Supplements"
                 width={600}
                 height={400}
@@ -222,13 +140,13 @@ export default function HomePage() {
             {categories.map((category) => (
               <Link
                 key={category.slug}
-                href={`/category/${category.slug}`}
+                href={`/categories/${category.slug}`}
                 className="group block"
               >
                 <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="relative aspect-square">
                     <Image
-                      src={category.image}
+                      src="/placeholder-product.jpg"
                       alt={category.name}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-200"
@@ -238,9 +156,9 @@ export default function HomePage() {
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
                       {category.name}
                     </h3>
-                    <p className="text-gray-600 mb-3">{category.description}</p>
+                    <p className="text-gray-600 mb-3">{category.description || 'Premium quality supplements'}</p>
                     <p className="text-sm text-red-600 font-medium">
-                      {category.productCount} Products
+                      {category._count.products} Products
                     </p>
                   </div>
                 </div>
@@ -261,14 +179,23 @@ export default function HomePage() {
               Our most popular and highly-rated supplements
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-              />
-            ))}
-          </div>
+          {featuredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600 mb-4">No featured products available at the moment.</p>
+              <Link href="/all-products">
+                <Button>Browse All Products</Button>
+              </Link>
+            </div>
+          )}
           <div className="text-center mt-12">
             <Link href="/all-products">
               <Button size="lg" variant="outline">
