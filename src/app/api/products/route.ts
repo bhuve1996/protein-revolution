@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
       limit: searchParams.get('limit') || '12'
     }
 
-    const page = parseInt(query.page)
-    const limit = parseInt(query.limit)
+    const page = parseInt(query.page || '1')
+    const limit = parseInt(query.limit || '12')
     const category = query.category
     const brand = query.brand
     const minPrice = query.minPrice
@@ -63,9 +63,10 @@ export async function GET(request: NextRequest) {
     }
 
     if (minPrice || maxPrice) {
-      whereClause.price = {}
-      if (minPrice) whereClause.price.gte = parseFloat(minPrice)
-      if (maxPrice) whereClause.price.lte = parseFloat(maxPrice)
+      const priceFilter: { gte?: number; lte?: number } = {}
+      if (minPrice) priceFilter.gte = parseFloat(minPrice)
+      if (maxPrice) priceFilter.lte = parseFloat(maxPrice)
+      whereClause.price = priceFilter
     }
 
     if (search) {

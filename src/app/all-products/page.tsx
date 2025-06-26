@@ -4,6 +4,8 @@ import { Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { prisma } from '@/lib/db'
 import { ProductCard } from '@/components/product/product-card'
+import { ProductFilters } from '@/components/product/product-filters'
+import { Product } from '@/types'
 
 interface AllProductsPageProps {
   searchParams: Promise<{ 
@@ -16,6 +18,21 @@ interface AllProductsPageProps {
   }>
 }
 
+interface WhereClause {
+  isActive: boolean
+  category?: {
+    slug: string
+  }
+  brand?: {
+    contains: string
+    mode: 'insensitive'
+  }
+  price?: {
+    gte?: number
+    lte?: number
+  }
+}
+
 async function getAllProducts(searchParams: { 
   sort?: string
   category?: string
@@ -26,7 +43,7 @@ async function getAllProducts(searchParams: {
 }) {
   try {
     // Build filter conditions
-    const where: any = {
+    const where: WhereClause = {
       isActive: true
     }
 
@@ -54,7 +71,7 @@ async function getAllProducts(searchParams: {
     }
 
     // Build sort conditions
-    let orderBy: any = { createdAt: 'desc' }
+    let orderBy: Record<string, string> = { createdAt: 'desc' }
     
     switch (searchParams.sort) {
       case 'price-low':
@@ -68,12 +85,6 @@ async function getAllProducts(searchParams: {
         break
       case 'newest':
         orderBy = { createdAt: 'desc' }
-        break
-      case 'rating':
-        orderBy = { avgRating: 'desc' }
-        break
-      case 'featured':
-        orderBy = { isFeatured: 'desc' }
         break
     }
 
@@ -104,7 +115,7 @@ async function getAllProducts(searchParams: {
       products,
       totalProducts,
       categories,
-      brands: brands.map((b: any) => b.brand),
+      brands: brands.map((b: { brand: string }) => b.brand),
       currentPage: page,
       totalPages: Math.ceil(totalProducts / limit)
     }
@@ -163,132 +174,11 @@ export default async function AllProductsPage({ searchParams }: AllProductsPageP
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
           <div className="lg:w-1/4">
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
-              <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <Filter className="h-5 w-5 mr-2" />
-                Filters
-              </h3>
-
-              {/* Sort Options */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Sort By</h4>
-                <select
-                  value={resolvedSearchParams.sort || ''}
-                  onChange={(e) => window.location.href = buildUrl({ sort: e.target.value, page: '1' })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                >
-                  <option value="">Default</option>
-                  <option value="featured">Featured First</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="name">Name A-Z</option>
-                  <option value="newest">Newest First</option>
-                  <option value="rating">Highest Rated</option>
-                </select>
-              </div>
-
-              {/* Category Filter */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Category</h4>
-                <div className="space-y-2">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="category"
-                      value=""
-                      checked={!resolvedSearchParams.category}
-                      onChange={(e) => window.location.href = buildUrl({ category: undefined, page: '1' })}
-                      className="text-red-600"
-                    />
-                    <span className="ml-2 text-sm">All Categories</span>
-                  </label>
-                  {categories.map((category: { id: string; name: string; slug: string }) => (
-                    <label key={category.id} className="flex items-center">
-                      <input
-                        type="radio"
-                        name="category"
-                        value={category.slug}
-                        checked={resolvedSearchParams.category === category.slug}
-                        onChange={(e) => window.location.href = buildUrl({ category: e.target.value, page: '1' })}
-                        className="text-red-600"
-                      />
-                      <span className="ml-2 text-sm">{category.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Brand Filter */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Brand</h4>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="brand"
-                      value=""
-                      checked={!resolvedSearchParams.brand}
-                      onChange={(e) => window.location.href = buildUrl({ brand: undefined, page: '1' })}
-                      className="text-red-600"
-                    />
-                    <span className="ml-2 text-sm">All Brands</span>
-                  </label>
-                  {brands.map((brand: string) => (
-                    <label key={brand} className="flex items-center">
-                      <input
-                        type="radio"
-                        name="brand"
-                        value={brand}
-                        checked={resolvedSearchParams.brand === brand}
-                        onChange={(e) => window.location.href = buildUrl({ brand: e.target.value, page: '1' })}
-                        className="text-red-600"
-                      />
-                      <span className="ml-2 text-sm">{brand}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price Range */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Price Range</h4>
-                <div className="space-y-3">
-                  <div>
-                    <input
-                      type="number"
-                      placeholder="Min Price"
-                      value={resolvedSearchParams.minPrice || ''}
-                      onChange={(e) => {
-                        const timeout = setTimeout(() => {
-                          window.location.href = buildUrl({ minPrice: e.target.value, page: '1' })
-                        }, 1000)
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="number"
-                      placeholder="Max Price"
-                      value={resolvedSearchParams.maxPrice || ''}
-                      onChange={(e) => {
-                        const timeout = setTimeout(() => {
-                          window.location.href = buildUrl({ maxPrice: e.target.value, page: '1' })
-                        }, 1000)
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Clear Filters */}
-              <Link href="/all-products">
-                <Button variant="outline" className="w-full">
-                  Clear All Filters
-                </Button>
-              </Link>
-            </div>
+            <ProductFilters 
+              searchParams={resolvedSearchParams}
+              categories={categories}
+              brands={brands}
+            />
           </div>
 
           {/* Products Grid */}
@@ -304,8 +194,8 @@ export default async function AllProductsPage({ searchParams }: AllProductsPageP
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                  {products.map((product: any) => (
-                    <ProductCard key={product.id} product={product} />
+                  {products.map((product) => (
+                    <ProductCard key={product.id} product={product as unknown as Product} />
                   ))}
                 </div>
 

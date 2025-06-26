@@ -1,0 +1,10 @@
+# Fix your DATABASE_URL in .env.local with this format:
+DATABASE_URL="postgresql://username:password@hostname:5432/database?sslmode=require"
+
+# Common issues to fix:
+# 1. Make sure port is 5432 (or your actual port)
+# 2. URL-encode special characters in password:
+#    @ becomes %40
+#    # becomes %23
+#    % becomes %25
+#    & becomes %26
