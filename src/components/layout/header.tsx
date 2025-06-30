@@ -12,6 +12,7 @@ import { useWishlistStore } from '@/stores/wishlist-store'
 export function Header() {
   const { data: session, status } = useSession()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   
   const { totalItems: cartItemsCount, fetchCart } = useCartStore()
@@ -24,6 +25,21 @@ export function Header() {
       fetchWishlist()
     }
   }, [status, fetchCart, fetchWishlist])
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isUserMenuOpen) {
+        const target = event.target as Element
+        if (!target.closest('.user-menu-container')) {
+          setIsUserMenuOpen(false)
+        }
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isUserMenuOpen])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -114,32 +130,57 @@ export function Header() {
             {status === 'loading' ? (
               <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
             ) : session ? (
-              <div className="relative group">
-                <Button variant="ghost" size="icon">
+              <div className="relative user-menu-container">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                >
                   <User className="h-5 w-5" />
                 </Button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
-                  <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Dashboard
-                  </Link>
-                  <Link href="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    My Orders
-                  </Link>
-                  <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Profile
-                  </Link>
-                  {(session.user as any)?.role === 'ADMIN' && (
-                    <Link href="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      Admin Panel
-                    </Link>
-                  )}
-                  <button
-                    onClick={() => signOut()}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Sign Out
-                  </button>
-                </div>
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
+                                         <Link 
+                       href="/dashboard" 
+                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                       onClick={() => setIsUserMenuOpen(false)}
+                     >
+                       Dashboard
+                     </Link>
+                     <Link 
+                       href="/orders" 
+                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                       onClick={() => setIsUserMenuOpen(false)}
+                     >
+                       My Orders
+                     </Link>
+                     <Link 
+                       href="/profile" 
+                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                       onClick={() => setIsUserMenuOpen(false)}
+                     >
+                       Profile
+                     </Link>
+                     {(session.user as any)?.role === 'ADMIN' && (
+                       <Link 
+                         href="/admin" 
+                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                         onClick={() => setIsUserMenuOpen(false)}
+                       >
+                         Admin Panel
+                       </Link>
+                     )}
+                     <button
+                       onClick={() => {
+                         setIsUserMenuOpen(false)
+                         signOut()
+                       }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center space-x-2">
